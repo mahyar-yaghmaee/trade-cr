@@ -2,6 +2,7 @@ import sys
 import time
 import gdax
 import datetime
+import os
 
 
 def get_lite_coin_price(public_client):
@@ -31,9 +32,9 @@ def get_past_date_time_utc(days, hours, minutes, seconds):
 
 
 def main(argv):
-    key = ''
-    b64secret = ''
-    passphrase = ''
+    key = os.environ['GDAX_KEY']
+    b64secret = os.environ['GDAX_B64SECRET']
+    passphrase = os.environ['GDAX_PASSPHRASE']
 
     period = 1
     public_client = gdax.PublicClient()
@@ -53,7 +54,6 @@ def main(argv):
             current_price=lite_coin_price,
             number_of_historic_points=number_of_historic_points)
    #     print(litecoin_historic_prices_list)
-
 
         print 'past : ', get_past_date_time_utc(days=0, hours=1, minutes=0, seconds=0)
         print 'time: ', query_time, ', price: ', lite_coin_price, ', Moving average: ', average_price
