@@ -29,6 +29,23 @@ class GdaxHelper():
         crypto_coin_api = self.public_client.get_product_ticker(product_id=coin_product_id)
         return crypto_coin_api['price'], crypto_coin_api['time']
 
+    def get_current_price_for_all_coins(self):
+        """
+        shows the current price for all coins (ehterium, bitcoin, bitcoin-cash, and litecoin)
+        :return: dictionary in form of {'bitcoin': 10234, 'litecoin': 100, 'bitcoincash': 900, 'etherium': 500}
+        to map coin name to ts current price
+        """
+        coin_price_pair = {}
+        # TODO: look at performace for iterator
+        for coin_name, coin_product_id in self.COIN_TO_USD_PRODUCT_ID.iteritems():
+            coin_price_pair[coin_name] = self.public_client.get_product_ticker(product_id=coin_product_id)['price']
+        return coin_price_pair
+
+ #   def get_lite_coin_to_all_other_coins_price_ratio(self, coin_to_compare_to_others):
+
+
+
+
     def get_coin_to_coin_ratio(self, first_coin, second_coin):
         """
         Generates price ratio of two coins at current time
@@ -56,6 +73,7 @@ def main(argv):
     bitcoin_initial_price = 8521.00
     etherium_initial_price = 521.18
     usd = 52.60
+    init_amount_of_litecoin_bought = 0.32733706
 
     while True:
         time.sleep(int(period))
@@ -68,6 +86,9 @@ def main(argv):
         print 'bitcash :  ', bitcoincash_current_price
         print 'lite:  ', litecoin_current_price
         print 'ratio: ', gdax_helper.get_coin_to_coin_ratio('litecoin', 'bitcoin')
+
+        print '00000'
+        print gdax_helper.get_current_price_for_all_coins()
         print '-------'
 
 
