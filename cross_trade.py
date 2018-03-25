@@ -40,7 +40,10 @@ class GdaxHelper():
             raise RuntimeError('Incorrect coin type for ratio {}/{}' .format(first_coin, second_coin))
 
         # need to get first element of price function which returns the price!
+
         current_price_ratio = float(self.get_coin_price(first_coin)[0])/float(self.get_coin_price(second_coin)[0])
+        #TODO: better to return everythin (including prices of the coins with a single call...to avoid delays)
+        # todo: return current_price_ratio, price1, price2
         return current_price_ratio
 
 
@@ -48,17 +51,23 @@ def main(argv):
     period = 1
     gdax_helper = GdaxHelper()
 
+    litecoin_initial_price = 160.21
+    bitcoin_cash_initial_price = 979.38
+    bitcoin_initial_price = 8521.00
+    etherium_initial_price = 521.18
+    usd = 52.60
+
     while True:
         time.sleep(int(period))
-        bitcoincoin_price, bitcoincoin_query_time = gdax_helper.get_coin_price(coin_type='bitcoin')
-        bitcoincash_price, bitcoincash_query_time = gdax_helper.get_coin_price(coin_type='bitcoincash')
-        etherium_price, etherium_query_time = gdax_helper.get_coin_price(coin_type='etherium')
-        litecoin_price, litecoin_query_time = gdax_helper.get_coin_price(coin_type='litecoin')
+        bitcoin_current_price, bitcoincoin_query_time = gdax_helper.get_coin_price(coin_type='bitcoin')
+        bitcoincash_current_price, bitcoincash_query_time = gdax_helper.get_coin_price(coin_type='bitcoincash')
+        etherium_current_price, etherium_query_time = gdax_helper.get_coin_price(coin_type='etherium')
+        litecoin_current_price, litecoin_query_time = gdax_helper.get_coin_price(coin_type='litecoin')
 
-        get_coin_to_coin_ratio = gdax_helper.get_coin_to_coin_ratio('litecoin', 'bitcoin')
-        print 'bit :  ', bitcoincoin_price
-        print 'lite:  ', litecoin_price
-        print 'ratio: ', get_coin_to_coin_ratio
+
+        print 'bitcash :  ', bitcoincash_current_price
+        print 'lite:  ', litecoin_current_price
+        print 'ratio: ', gdax_helper.get_coin_to_coin_ratio('litecoin', 'bitcoin')
         print '-------'
 
 
