@@ -12,6 +12,7 @@ class GdaxHelper():
                               'etherium': 'ETH-USD',
                               'litecoin': 'LTC-USD'
                               }
+    NAME_OF_COINS_LIST = list(COIN_TO_USD_PRODUCT_ID.keys())
 
     def __init__(self):
         self.public_client = gdax.PublicClient()
@@ -41,8 +42,33 @@ class GdaxHelper():
             coin_price_pair[coin_name] = self.public_client.get_product_ticker(product_id=coin_product_id)['price']
         return coin_price_pair
 
- #   def get_lite_coin_to_all_other_coins_price_ratio(self, coin_to_compare_to_others):
-
+    def get_coin_to_coin_price_ratio_for_all_coins(self):
+        """
+        Shows the current price ratio beetween all coins
+        :return: retusn a dictionary in for of {'bitcoin/litecoin': 80.5, 'bitcoin/etherium': 20.2, 'litecoin/bitcoin': 0.17, ...}
+        This is for all types of coins
+        """
+        price_ratio = {}
+        coin_price_pair = self.get_current_price_for_all_coins()
+        # TODO: remove hardcoding
+        # litecoin-to-others!
+        price_ratio['litecoin/bitcoin'] = float(coin_price_pair['litecoin'])/float(coin_price_pair['bitcoin'])
+        price_ratio['litecoin/bitcoincash'] = float(coin_price_pair['litecoin'])/float(coin_price_pair['bitcoincash'])
+        price_ratio['litecoin/etherium'] = float(coin_price_pair['litecoin'])/float(coin_price_pair['etherium'])
+        # etherium-to-others!
+        price_ratio['etherium/bitcoin'] = float(coin_price_pair['etherium'])/float(coin_price_pair['bitcoin'])
+        price_ratio['etheriumv/bitcoincash'] = float(coin_price_pair['etherium'])/float(coin_price_pair['bitcoincash'])
+        price_ratio['etherium/litecoin'] = float(coin_price_pair['etherium'])/float(coin_price_pair['litecoin'])
+        # bitcoincash-to-others!
+        price_ratio['bitcoincash/bitcoin'] = float(coin_price_pair['bitcoincash'])/float(coin_price_pair['bitcoin'])
+        price_ratio['bitcoincash/etherium'] = float(coin_price_pair['bitcoincash'])/float(coin_price_pair['etherium'])
+        price_ratio['bitcoincash/litecoin'] = float(coin_price_pair['bitcoincash'])/float(coin_price_pair['litecoin'])
+        # bitcoin-to-others!
+        price_ratio['bitcoin/bitcoincash'] = float(coin_price_pair['bitcoin'])/float(coin_price_pair['bitcoincash'])
+        price_ratio['bitcoin/etherium'] = float(coin_price_pair['bitcoin'])/float(coin_price_pair['etherium'])
+        price_ratio['bitcoin/litecoin'] = float(coin_price_pair['bitcoin'])/float(coin_price_pair['litecoin'])
+        
+        return price_ratio
 
 
 
@@ -77,18 +103,19 @@ def main(argv):
 
     while True:
         time.sleep(int(period))
-        bitcoin_current_price, bitcoincoin_query_time = gdax_helper.get_coin_price(coin_type='bitcoin')
-        bitcoincash_current_price, bitcoincash_query_time = gdax_helper.get_coin_price(coin_type='bitcoincash')
-        etherium_current_price, etherium_query_time = gdax_helper.get_coin_price(coin_type='etherium')
-        litecoin_current_price, litecoin_query_time = gdax_helper.get_coin_price(coin_type='litecoin')
+    #    bitcoin_current_price, bitcoincoin_query_time = gdax_helper.get_coin_price(coin_type='bitcoin')
+    #    bitcoincash_current_price, bitcoincash_query_time = gdax_helper.get_coin_price(coin_type='bitcoincash')
+    #    etherium_current_price, etherium_query_time = gdax_helper.get_coin_price(coin_type='etherium')
+    #    litecoin_current_price, litecoin_query_time = gdax_helper.get_coin_price(coin_type='litecoin')
 
 
-        print 'bitcash :  ', bitcoincash_current_price
-        print 'lite:  ', litecoin_current_price
-        print 'ratio: ', gdax_helper.get_coin_to_coin_ratio('litecoin', 'bitcoin')
+     #   print 'bitcash :  ', bitcoincash_current_price
+     #   print 'lite:  ', litecoin_current_price
+     #   print 'ratio: ', gdax_helper.get_coin_to_coin_ratio('litecoin', 'bitcoin')
 
-        print '00000'
-        print gdax_helper.get_current_price_for_all_coins()
+     #   print '00000'
+     #   print gdax_helper.get_current_price_for_all_coins()
+        print gdax_helper.get_coin_to_coin_price_ratio_for_all_coins()
         print '-------'
 
 
