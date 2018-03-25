@@ -55,7 +55,7 @@ class GdaxHelper():
         price_ratio['litecoin/etherium'] = float(coin_price_pair['litecoin']) / float(coin_price_pair['etherium'])
         # etherium-to-others!
         price_ratio['etherium/bitcoin'] = float(coin_price_pair['etherium']) / float(coin_price_pair['bitcoin'])
-        price_ratio['etheriumv/bitcoincash'] = float(coin_price_pair['etherium']) / float(
+        price_ratio['etherium/bitcoincash'] = float(coin_price_pair['etherium']) / float(
             coin_price_pair['bitcoincash'])
         price_ratio['etherium/litecoin'] = float(coin_price_pair['etherium']) / float(coin_price_pair['litecoin'])
         # bitcoincash-to-others!

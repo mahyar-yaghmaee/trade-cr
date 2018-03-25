@@ -1,5 +1,6 @@
 import sys
 import time
+import logging
 
 from gdax_helper import GdaxHelper
 
@@ -11,31 +12,32 @@ def main(argv):
     period = 1
     gdax_helper = GdaxHelper()
 
-    litecoin_initial_price = 160.21
-    bitcoin_cash_initial_price = 979.38
-    bitcoin_initial_price = 8521.00
-    etherium_initial_price = 521.18
+    litecoin_price_at_buy_time = 160.21
+    bitcoin_cash_price_at_buy_time = 979.38
+    bitcoin_price_at_buy_time = 8521.00
+    etherium_price_at_buy_time = 521.18
     usd = 52.60
     init_amount_of_litecoin_bought = 0.32733706
     selected_coin_to_buy = 'litecoin'
 
-    initial_ratio = {}
+    price_ratio_at_buy_time = {}
     # Since we have litecoin in bank,I should buy/sell based on litecoin first
-    initial_ratio['litecoin/bitcoincash'] = litecoin_initial_price/bitcoin_cash_initial_price
-    initial_ratio['litecoin/etherium'] = litecoin_initial_price/etherium_initial_price
-    initial_ratio['litecoin/bitcoin'] = litecoin_initial_price/bitcoin_initial_price
+    price_ratio_at_buy_time['litecoin/bitcoincash'] = litecoin_price_at_buy_time/bitcoin_cash_price_at_buy_time
+    price_ratio_at_buy_time['litecoin/etherium'] = litecoin_price_at_buy_time/etherium_price_at_buy_time
+    price_ratio_at_buy_time['litecoin/bitcoin'] = litecoin_price_at_buy_time/bitcoin_price_at_buy_time
 
-    initial_ratio['etherium/litecoin'] = etherium_initial_price/litecoin_initial_price
-    initial_ratio['etherium/bitcoincash'] = etherium_initial_price/bitcoin_cash_initial_price
-    initial_ratio['etherium/bitcoin'] = etherium_initial_price/bitcoin_initial_price
+    price_ratio_at_buy_time['etherium/litecoin'] = etherium_price_at_buy_time/litecoin_price_at_buy_time
+    price_ratio_at_buy_time['etherium/bitcoincash'] = etherium_price_at_buy_time/bitcoin_cash_price_at_buy_time
+    price_ratio_at_buy_time['etherium/bitcoin'] = etherium_price_at_buy_time/bitcoin_price_at_buy_time
 
-    initial_ratio['bitcoincash/litecoin'] = bitcoin_cash_initial_price/litecoin_initial_price
-    initial_ratio['bitcoincash/etherium'] = bitcoin_cash_initial_price/etherium_initial_price
-    initial_ratio['bitcoincash/bitcoin'] = bitcoin_cash_initial_price/bitcoin_initial_price
+    price_ratio_at_buy_time['bitcoincash/litecoin'] = bitcoin_cash_price_at_buy_time/litecoin_price_at_buy_time
+    price_ratio_at_buy_time['bitcoincash/etherium'] = bitcoin_cash_price_at_buy_time/etherium_price_at_buy_time
+    price_ratio_at_buy_time['bitcoincash/bitcoin'] = bitcoin_cash_price_at_buy_time/bitcoin_price_at_buy_time
 
-    initial_ratio['bitcoin/litecoin'] = bitcoin_initial_price/litecoin_initial_price
-    initial_ratio['bitcoin/etherium'] = bitcoin_initial_price/etherium_initial_price
-    initial_ratio['bitcoin/bitcoincash'] = bitcoin_initial_price/bitcoin_cash_initial_price
+    price_ratio_at_buy_time['bitcoin/litecoin'] = bitcoin_price_at_buy_time/litecoin_price_at_buy_time
+    price_ratio_at_buy_time['bitcoin/etherium'] = bitcoin_price_at_buy_time/etherium_price_at_buy_time
+    price_ratio_at_buy_time['bitcoin/bitcoincash'] = bitcoin_price_at_buy_time/bitcoin_cash_price_at_buy_time
+    print 'init price_ratio_at_buy_time:       ', price_ratio_at_buy_time
 
     while True:
         time.sleep(int(period))
@@ -44,31 +46,45 @@ def main(argv):
         # pattern for selected coin is 'coin_name/*'
         # get a subset dictionary of all ratios for the coin we actually bought
         selected_coin_to_other_coins_initial_price_ratios_dict = dict(
-            (key, value) for key, value in initial_ratio.items() if selected_coin_to_buy + '/' in key.lower())
-        print 'SSSselected_coin_to_other_coins_initial_price_ratios_dict:    ', selected_coin_to_other_coins_initial_price_ratios_dict
+            (key, value) for key, value in price_ratio_at_buy_time.items() if selected_coin_to_buy + '/' in key.lower())
+        print 'Selected coin to other coins price at buy time: {}'.format(selected_coin_to_other_coins_initial_price_ratios_dict)
 
         for coin_to_coin_pair_name, initial_price_ratio_for_selected_coins in selected_coin_to_other_coins_initial_price_ratios_dict.iteritems():
 
             current_price_ratios, current_individual_prices = gdax_helper.get_current_coin_to_coin_price_ratio_for_all_coins_and_individual_prices()
             current_price_ratio_for_selected_coins = current_price_ratios[coin_to_coin_pair_name]
-            print 'init: ', coin_to_coin_pair_name
-            print 'initial_price_ratio_for_selected_coins: ' , initial_price_ratio_for_selected_coins
-            print 'current_individual_prices: ' , current_individual_prices
 
             # TODO: for now we are only looking at litecoin
             # put a margin on top of actual fee to make some profit!
             fee_coefficient = 1 - init_amount_of_litecoin_bought*(GDAX_FEE + BUY_SELL_MARGIN)
-            print 'price_ratio_with_fee:   ', current_price_ratio_for_selected_coins*fee_coefficient
 
-
-            print 'coin_to_coin_pair_name: ', coin_to_coin_pair_name
             if initial_price_ratio_for_selected_coins < current_price_ratio_for_selected_coins*fee_coefficient:
                 print 'SELLLLL'
                 # new coin to buy: selected_pair-'previous coin'
                 # TODO: sell previous coin!
                 selected_coin_to_buy = coin_to_coin_pair_name.replace(selected_coin_to_buy + '/', '')
-                print 'new coin: ', selected_coin_to_buy
+                print 'New selected coin to buy: {}'.format(selected_coin_to_buy)
                 #TODO: buy new coin!
+
+                #TODO: put in a method?
+                # update prices when bought
+                price_ratio_at_buy_time['litecoin/bitcoincash'] = current_price_ratios['litecoin/bitcoincash']
+                price_ratio_at_buy_time['litecoin/etherium'] = current_price_ratios['litecoin/etherium']
+                price_ratio_at_buy_time['litecoin/bitcoin'] = current_price_ratios['litecoin/bitcoin']
+
+                price_ratio_at_buy_time['etherium/litecoin'] = current_price_ratios['etherium/litecoin']
+                price_ratio_at_buy_time['etherium/bitcoincash'] = current_price_ratios['etherium/bitcoincash']
+                price_ratio_at_buy_time['etherium/bitcoin'] = current_price_ratios['etherium/bitcoin']
+
+                price_ratio_at_buy_time['bitcoincash/litecoin'] = current_price_ratios['bitcoincash/litecoin']
+                price_ratio_at_buy_time['bitcoincash/etherium'] = current_price_ratios['bitcoincash/etherium']
+                price_ratio_at_buy_time['bitcoincash/bitcoin'] = current_price_ratios['bitcoincash/bitcoin']
+
+                price_ratio_at_buy_time['bitcoin/litecoin'] = current_price_ratios['bitcoin/litecoin']
+                price_ratio_at_buy_time['bitcoin/etherium'] = current_price_ratios['bitcoin/etherium']
+                price_ratio_at_buy_time['bitcoin/bitcoincash'] = current_price_ratios['bitcoin/bitcoincash']
+
+
                 break
             else:
                 print 'no sel!!'
