@@ -37,15 +37,18 @@ class GdaxHelper():
             coin_price_pair[coin_name] = self.public_client.get_product_ticker(product_id=coin_product_id)['price']
         return coin_price_pair
 
-    def get_coin_to_coin_price_ratio_for_all_coins(self):
+    def get_current_coin_to_coin_price_ratio_for_all_coins_and_individual_prices(self):
         """
         Shows the current price ratio beetween all coins
-        :return: retusn a dictionary in for of {'bitcoin/litecoin': 80.5, 'bitcoin/etherium': 20.2, 'litecoin/bitcoin': 0.17, ...}
-        This is for all types of coins
+        :return: retusn a dictionary in for of {'bitcoin/litecoin': 80.5, 'bitcoin/etherium': 20.2, 'litecoin/bitcoin': 0.17, ...}, {'litecoin: 100,'bitcon':1000, ,,,,}
+        This is for all types of coins and also individual prcing
+        #TODO: improve doc
         """
         price_ratio = {}
         coin_price_pair = self.get_current_price_for_all_coins()
         # TODO: remove hardcoding
+
+        # TODO: need to return individual + all prices in one call ot avoid delay!
         # litecoin-to-others!
         price_ratio['litecoin/bitcoin'] = float(coin_price_pair['litecoin']) / float(coin_price_pair['bitcoin'])
         price_ratio['litecoin/bitcoincash'] = float(coin_price_pair['litecoin']) / float(coin_price_pair['bitcoincash'])
@@ -64,7 +67,7 @@ class GdaxHelper():
         price_ratio['bitcoin/etherium'] = float(coin_price_pair['bitcoin']) / float(coin_price_pair['etherium'])
         price_ratio['bitcoin/litecoin'] = float(coin_price_pair['bitcoin']) / float(coin_price_pair['litecoin'])
 
-        return price_ratio
+        return price_ratio, coin_price_pair
 
     def get_coin_to_coin_ratio(self, first_coin, second_coin):
         """
