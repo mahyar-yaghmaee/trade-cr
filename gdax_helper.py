@@ -1,5 +1,6 @@
 import gdax
 
+
 class GdaxHelper():
     COIN_TO_USD_PRODUCT_ID = {
         'bitcoin': 'BTC-USD',
@@ -85,3 +86,4 @@ class GdaxHelper():
         # TODO: better to return everythin (including prices of the coins with a single call...to avoid delays)
         # todo: return current_price_ratio, price1, price2
         return current_price_ratio
+

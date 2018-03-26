@@ -1,6 +1,8 @@
 import sys
 import time
 import logging
+import gdax
+import os
 
 from gdax_helper import GdaxHelper
 
@@ -8,7 +10,36 @@ GDAX_FEE = 0.006  # 0.6 percent fee
 BUY_SELL_MARGIN = 0.005  # 0.5 percent profit
 
 
+class GdaxTrader():
+    def __init__(self):
+        key = os.environ['GDAX_KEY']
+        b64secret = os.environ['GDAX_B64SECRET']
+        passphrase = os.environ['GDAX_PASSPHRASE']
+        self.auth_client = gdax.AuthenticatedClient(key, b64secret, passphrase)
+
+    def sell_market_value(self, size_to_sell, product_id):
+        sell_result = self.auth_client.sell(
+            size=size_to_sell,  # of Coin
+            product_id=product_id, #'LTC-USD'
+            type='market')
+
+        print sell_result
+
+    def buy_market_value(self, size_to_buy, product_id):
+        buy_result = self.auth_client.buy(
+                    size=size_to_buy, #of Coin
+                    product_id=product_id,#'LTC-USD'
+                    type='market')
+        print buy_result
+
+
+
+
+
+
+
 def main(argv):
+
     period = 1
     gdax_helper = GdaxHelper()
 
