@@ -40,7 +40,7 @@ class GdaxHelper():
 
     def get_current_coin_to_coin_price_ratio_for_all_coins_and_individual_prices(self):
         """
-        Shows the current price ratio beetween all coins
+        Shows the current price ratio between all coins
         :return: retusn a dictionary in for of {'bitcoin/litecoin': 80.5, 'bitcoin/etherium': 20.2, 'litecoin/bitcoin': 0.17, ...}, {'litecoin: 100,'bitcon':1000, ,,,,}
         This is for all types of coins and also individual prcing
         #TODO: improve doc

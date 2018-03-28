@@ -16,23 +16,34 @@ class GdaxTrader():
         b64secret = os.environ['GDAX_B64SECRET']
         passphrase = os.environ['GDAX_PASSPHRASE']
         self.auth_client = gdax.AuthenticatedClient(key, b64secret, passphrase)
+        self.gdax_helper = GdaxHelper()
 
-    def sell_market_value(self, size_to_sell, product_id):
+    def sell_market_value(self, size_to_sell_coin_size, coin_type):
+        """
+        Sell coin in market value with coin size. coin size needs to be at least 0.1 (for litecoin)
+        :param size_to_sell_coin_size: String representation of float. like '0.1'
+        :param coin_type: type of coin: 'bitcoin', 'litecoin', bitcoincash', 'etherium'
+        :return: sell result in json
+        """
         sell_result = self.auth_client.sell(
-            size=size_to_sell,  # of Coin
-            product_id=product_id, #'LTC-USD'
+            size=size_to_sell_coin_size,  # of Coin
+            product_id=self.gdax_helper.COIN_TO_USD_PRODUCT_ID[coin_type.lower()],  # example 'LTC-USD'
             type='market')
 
-        print sell_result
+        return sell_result
 
-    def buy_market_value(self, size_to_buy, product_id):
+    def buy_market_value(self, funds_in_usd, coin_type):
+        """
+        Buys 'coin_type' in market value with USD. minimum USD =10 is required for the transaction
+        :param funds_in_usd: Int, amount to buy in USD
+        :param coin_type: type of coin: 'bitcoin', 'litecoin', bitcoincash', 'etherium'
+        :return: result of buy
+        """
         buy_result = self.auth_client.buy(
-                    size=size_to_buy, #of Coin
-                    product_id=product_id,#'LTC-USD'
+                    funds=funds_in_usd, #of Coin
+                    product_id=self.gdax_helper.COIN_TO_USD_PRODUCT_ID[coin_type.lower()],#'LTC-USD'
                     type='market')
-        print buy_result
-
-
+        return buy_result
 
 
 
