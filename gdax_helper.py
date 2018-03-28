@@ -1,5 +1,6 @@
 import gdax
 
+
 class GdaxHelper():
     COIN_TO_USD_PRODUCT_ID = {
         'bitcoin': 'BTC-USD',
@@ -39,7 +40,7 @@ class GdaxHelper():
 
     def get_current_coin_to_coin_price_ratio_for_all_coins_and_individual_prices(self):
         """
-        Shows the current price ratio beetween all coins
+        Shows the current price ratio between all coins
         :return: retusn a dictionary in for of {'bitcoin/litecoin': 80.5, 'bitcoin/etherium': 20.2, 'litecoin/bitcoin': 0.17, ...}, {'litecoin: 100,'bitcon':1000, ,,,,}
         This is for all types of coins and also individual prcing
         #TODO: improve doc
@@ -55,7 +56,7 @@ class GdaxHelper():
         price_ratio['litecoin/etherium'] = float(coin_price_pair['litecoin']) / float(coin_price_pair['etherium'])
         # etherium-to-others!
         price_ratio['etherium/bitcoin'] = float(coin_price_pair['etherium']) / float(coin_price_pair['bitcoin'])
-        price_ratio['etheriumv/bitcoincash'] = float(coin_price_pair['etherium']) / float(
+        price_ratio['etherium/bitcoincash'] = float(coin_price_pair['etherium']) / float(
             coin_price_pair['bitcoincash'])
         price_ratio['etherium/litecoin'] = float(coin_price_pair['etherium']) / float(coin_price_pair['litecoin'])
         # bitcoincash-to-others!
@@ -85,3 +86,4 @@ class GdaxHelper():
         # TODO: better to return everythin (including prices of the coins with a single call...to avoid delays)
         # todo: return current_price_ratio, price1, price2
         return current_price_ratio
+

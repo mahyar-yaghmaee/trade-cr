@@ -5,6 +5,7 @@ import datetime
 import os
 
 
+
 def get_lite_coin_price(public_client):
     lite_coin_api = public_client.get_product_ticker(product_id='LTC-USD')
     lite_coin_price = lite_coin_api['price']
