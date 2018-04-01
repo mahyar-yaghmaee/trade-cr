@@ -83,6 +83,7 @@ def main(argv):
     etherium_price_at_buy_time = 381.76
     usd = 38.62
     init_amount_of_coin_bought = 0.3348216
+    # TODO: MAKE SURE TO GEt THIS AS ARGUMENT!!!!!!!! <<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>
     selected_coin_to_buy = 'litecoin'
 
     price_ratio_at_buy_time = {}
@@ -196,7 +197,6 @@ def main(argv):
                 break
             else:
                 print 'no sel!!'
-
 
 
 if __name__ == "__main__":
