@@ -76,6 +76,7 @@ def main(argv):
     period = 1
     gdax_helper = GdaxHelper()
     gdax_trader = GdaxTrader()
+    no_of_sell_or_buys = 0
 
     litecoin_price_at_buy_time = 114.86
     bitcoin_cash_price_at_buy_time = 649.00
@@ -192,6 +193,8 @@ def main(argv):
 
                 print 'Amount bought of {} is {}: '.format(coin_to_buy, gdax_trader.
                                                            get_account_all_products_available_amounts()[coin_to_buy])
+                no_of_sell_or_buys += 1
+                print('Number of Sell/buys: ', no_of_sell_or_buys)
                 print '----------------'
 
                 break
