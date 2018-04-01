@@ -8,7 +8,7 @@ import datetime
 from gdax_helper import GdaxHelper
 
 GDAX_FEE = 0.006  # 0.6 percent fee
-BUY_SELL_MARGIN = 0.003  # 0.3 percent profit >>>> NOTE: We round down amount to buy/sell 0.01. see if it affect this
+BUY_SELL_MARGIN = 0.005  # 0.5 percent profit >>>> NOTE: We round down amount to buy/sell 0.01. see if it affect this
 
 
 class GdaxTrader():
@@ -83,7 +83,7 @@ def main(argv):
     bitcoin_price_at_buy_time = 6833.00
     etherium_price_at_buy_time = 381.76
     usd = 38.62
-    init_amount_of_coin_bought = 0.3348216
+    amount_of_coin_bought = 0.30384468
     # TODO: MAKE SURE TO GEt THIS AS ARGUMENT!!!!!!!! <<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>
     selected_coin_to_buy = 'litecoin'
 
@@ -104,7 +104,6 @@ def main(argv):
     price_ratio_at_buy_time['bitcoin/litecoin'] = bitcoin_price_at_buy_time/litecoin_price_at_buy_time
     price_ratio_at_buy_time['bitcoin/etherium'] = bitcoin_price_at_buy_time/etherium_price_at_buy_time
     price_ratio_at_buy_time['bitcoin/bitcoincash'] = bitcoin_price_at_buy_time/bitcoin_cash_price_at_buy_time
-    print 'init price_ratio_at_buy_time:       ', price_ratio_at_buy_time
     account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
 
     while True:
@@ -130,37 +129,46 @@ def main(argv):
             current_price_ratio_for_selected_coins = current_price_ratios[coin_to_coin_pair_name]
 
             # put a margin on top of actual fee to make some profit!
-            fee_coefficient = 1 - init_amount_of_coin_bought*(GDAX_FEE + BUY_SELL_MARGIN)
+            fee_coefficient = 1 - amount_of_coin_bought*(GDAX_FEE + BUY_SELL_MARGIN)
 
             # 2- if this formula is true for coin1/coin2 need to sell coin1, and buy coin2
             if initial_price_ratio_for_selected_coins < current_price_ratio_for_selected_coins*fee_coefficient:
-                print 'SEL!'
                 # 2.a - round down 0.01 of coin to be able to sell sometimes gdax has error , mnostly with doller!)
                 # TODO: llook at this!
-                amount_coin_to_sell = account_available_amounts_at_buy_time[coin_to_sell]
-                amount_coin_to_sell_rounded_down = round(amount_coin_to_sell - 0.01)
+                amount_coin_to_sell = float(account_available_amounts_at_buy_time[coin_to_sell])
+                amount_coin_to_sell_rounded_down = round(amount_coin_to_sell - 0.00000001, 8)
+                print 'SEL {} in amount of {}'.format(coin_to_sell, amount_coin_to_sell_rounded_down)
+
                 # 2.a - Sell the product (coin1) with market value
-                gdax_trader.sell_market_value(
+                sell_result = gdax_trader.sell_market_value(
                     size_to_sell_coin_size=amount_coin_to_sell_rounded_down,
                     coin_type=coin_to_sell
                 )
+                print 'Result of Sell: {} '.format(sell_result)
 
                 # 2.b - Buy coin2 in market value
                 # new coin to buy: selected_pair-'previous coin'
-                print 'BUY!'
                 selected_coin_to_buy = coin_to_coin_pair_name.replace(selected_coin_to_buy + '/', '')
                 print 'New selected coin to buy: {}'.format(selected_coin_to_buy)
 
-                # 2.c - need to round down 0.01$ so we can buy, gdax can not buy for example 3.123124124125$
-                amount_in_usd_to_buy = account_available_amounts_at_buy_time[coin_to_buy]
-                amount_in_usd_to_buy_round_down_two_digits = round(amount_in_usd_to_buy - 0.01)
-
+                # 2.c update account avaialble amount sto to how much USD we have
                 account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
-                gdax_trader.buy_market_value(coin_type=coin_to_buy,
+
+                # 2.d - need to round down 0.01$ so we can buy, gdax can not buy for example 3.123124124125$
+                amount_in_usd_to_buy = float(account_available_amounts_at_buy_time['usd'])
+                amount_in_usd_to_buy_round_down_two_digits = round(amount_in_usd_to_buy - 0.01, 2)
+                print 'BUY {} for {} USD'.format(coin_to_buy, amount_in_usd_to_buy_round_down_two_digits)
+
+                buy_result = gdax_trader.buy_market_value(coin_type=coin_to_buy,
                                              funds_in_usd=amount_in_usd_to_buy_round_down_two_digits)
 
+                print 'Result of Buy: {} '.format(buy_result)
+
                 #TODO: put in a method?
-                # 2.d - update prices when bought, to be used for future buys
+                # 2.e - Update Account amounts after buying
+                account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
+
+                # 2.f - update prices when bought, to be used for future buys
                 price_ratio_at_buy_time['litecoin/bitcoincash'] = current_price_ratios['litecoin/bitcoincash']
                 price_ratio_at_buy_time['litecoin/etherium'] = current_price_ratios['litecoin/etherium']
                 price_ratio_at_buy_time['litecoin/bitcoin'] = current_price_ratios['litecoin/bitcoin']
@@ -191,12 +199,16 @@ def main(argv):
                 print 'bitcoin/etherium      : ',price_ratio_at_buy_time['bitcoin/etherium']
                 print 'bitcoin/bitcoincash   : ',price_ratio_at_buy_time['bitcoin/bitcoincash']
 
-                print 'Amount bought of {} is {}: '.format(coin_to_buy, gdax_trader.
-                                                           get_account_all_products_available_amounts()[coin_to_buy])
+                amount_of_coin_bought = gdax_trader.get_account_all_products_available_amounts()[coin_to_buy]
+                print 'Amount bought of {} is {}: '.format(coin_to_buy, amount_of_coin_bought)
                 no_of_sell_or_buys += 1
                 print('Number of Sell/buys: ', no_of_sell_or_buys)
                 print '----------------'
 
+                # 2.g sleep for transaction
+                time.sleep(1)
+
+                # 2.f break the loop to go to newcoin/othercoins ratio
                 break
             else:
                 print 'no sel!!'
