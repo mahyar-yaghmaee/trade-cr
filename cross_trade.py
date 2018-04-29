@@ -8,7 +8,7 @@ import datetime
 from gdax_helper import GdaxHelper
 
 GDAX_FEE = 0.006  # 0.6 percent fee
-BUY_SELL_MARGIN = 0.005  # 0.5 percent profit >>>> NOTE: We round down amount to buy/sell 0.01. see if it affect this
+BUY_SELL_MARGIN = 0.004  # 0.2 percent profit >>>> NOTE: We round down amount to buy/sell 0.01. see if it affect this
 
 
 class GdaxTrader():
@@ -78,14 +78,17 @@ def main(argv):
     gdax_trader = GdaxTrader()
     no_of_sell_or_buys = 0
 
-    litecoin_price_at_buy_time = 114.86
-    bitcoin_cash_price_at_buy_time = 649.00
-    bitcoin_price_at_buy_time = 6833.00
-    etherium_price_at_buy_time = 381.76
+    litecoin_price_at_buy_time = 136.38
+    bitcoin_cash_price_at_buy_time = 779.8
+    bitcoin_price_at_buy_time = 8138.82
+    etherium_price_at_buy_time = 517.80
     usd = 38.62
-    amount_of_coin_bought = 0.30384468
+   # litecooin_amount_of_coin_bought = 0.25734077
+   # bitcoin_amount_at_buy_time = 0.00405080
+    bitcoin_amount = 0.0040327174740541
+   # eth_amount = 0.06376998
     # TODO: MAKE SURE TO GEt THIS AS ARGUMENT!!!!!!!! <<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>
-    selected_coin_to_buy = 'litecoin'
+    selected_coin_to_buy = 'bitcoin'
 
     price_ratio_at_buy_time = {}
     # Since we have litecoin in bank,I should buy/sell based on litecoin first
@@ -106,112 +109,134 @@ def main(argv):
     price_ratio_at_buy_time['bitcoin/bitcoincash'] = bitcoin_price_at_buy_time/bitcoin_cash_price_at_buy_time
     account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
 
-    while True:
-        time.sleep(int(period))
+    result_file_name = 'buy_result.txt'
 
-        # check all price ratios
-        # pattern for selected coin is 'coin_name/*'
-        # get a subset dictionary of all ratios for the coin we actually bought
-        selected_coin_to_other_coins_initial_price_ratios_dict = dict(
-            (key, value) for key, value in price_ratio_at_buy_time.items() if selected_coin_to_buy + '/' in key.lower())
-        print 'Selected coin to other coins price at buy time: {}'.\
-            format(selected_coin_to_other_coins_initial_price_ratios_dict)
+    # Remove the file if already exist, to ignore previous results
+    try:
+        os.remove(result_file_name)
+    except OSError:
+        pass
 
-        # go over the all permutations of the current coin Vs other coins to find out if
-        # cur_coin(t1)/other_ones(t1) < cur_coin(t2)/other_ones(t2)
-        for coin_to_coin_pair_name, initial_price_ratio_for_selected_coins in \
-                selected_coin_to_other_coins_initial_price_ratios_dict.iteritems():
-            coin_to_sell, coin_to_buy = coin_to_coin_pair_name.split("/")  # split based on / for coin1/coin2
+    with open(result_file_name, 'a') as result_file:
 
-            # 1- get current coin to other coins ratio
-            current_price_ratios, current_individual_prices = gdax_helper.\
-                get_current_coin_to_coin_price_ratio_for_all_coins_and_individual_prices()
-            current_price_ratio_for_selected_coins = current_price_ratios[coin_to_coin_pair_name]
+        while True:
+            time.sleep(int(period))
 
-            # put a margin on top of actual fee to make some profit!
-            fee_coefficient = 1 - amount_of_coin_bought*(GDAX_FEE + BUY_SELL_MARGIN)
+            # check all price ratios
+            # pattern for selected coin is 'coin_name/*'
+            # get a subset dictionary of all ratios for the coin we actually bought
+            selected_coin_to_other_coins_initial_price_ratios_dict = dict(
+                (key, value) for key, value in price_ratio_at_buy_time.items() if selected_coin_to_buy + '/' in key.lower())
+            print 'Selected coin to other coins price at buy time: {}'.\
+                format(selected_coin_to_other_coins_initial_price_ratios_dict)
 
-            # 2- if this formula is true for coin1/coin2 need to sell coin1, and buy coin2
-            if initial_price_ratio_for_selected_coins < current_price_ratio_for_selected_coins*fee_coefficient:
-                # 2.a - round down 0.01 of coin to be able to sell sometimes gdax has error , mnostly with doller!)
-                # TODO: llook at this!
-                amount_coin_to_sell = float(account_available_amounts_at_buy_time[coin_to_sell])
-                amount_coin_to_sell_rounded_down = round(amount_coin_to_sell - 0.00000001, 8)
-                print 'SEL {} in amount of {}'.format(coin_to_sell, amount_coin_to_sell_rounded_down)
+            # go over the all permutations of the current coin Vs other coins to find out if
+            # cur_coin(t1)/other_ones(t1) < cur_coin(t2)/other_ones(t2)
+            for coin_to_coin_pair_name, initial_price_ratio_for_selected_coins in \
+                    selected_coin_to_other_coins_initial_price_ratios_dict.iteritems():
+                coin_to_sell, coin_to_buy = coin_to_coin_pair_name.split("/")  # split based on / for coin1/coin2
+                print 'coin_to_coin_pair_name: ' , coin_to_coin_pair_name
+                print 'initial_price_ratio_for_selected_coins: ', initial_price_ratio_for_selected_coins
 
-                # 2.a - Sell the product (coin1) with market value
-                sell_result = gdax_trader.sell_market_value(
-                    size_to_sell_coin_size=amount_coin_to_sell_rounded_down,
-                    coin_type=coin_to_sell
-                )
-                print 'Result of Sell: {} '.format(sell_result)
+                # 1- get current coin to other coins ratio
+                current_price_ratios, current_individual_prices = gdax_helper.\
+                    get_current_coin_to_coin_price_ratio_for_all_coins_and_individual_prices()
+                print 'current_price_ratios: ' , current_price_ratios
+                print 'coin_to_coin_pair_name: ', coin_to_coin_pair_name
+                current_price_ratio_for_selected_coins = current_price_ratios[coin_to_coin_pair_name]
 
-                # 2.b - Buy coin2 in market value
-                # new coin to buy: selected_pair-'previous coin'
-                selected_coin_to_buy = coin_to_coin_pair_name.replace(selected_coin_to_buy + '/', '')
-                print 'New selected coin to buy: {}'.format(selected_coin_to_buy)
+                print 'current_price_ratio_for_selected_coins:  ', current_price_ratio_for_selected_coins
 
-                # 2.c update account avaialble amount sto to how much USD we have
-                account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
+                # put a margin on top of actual fee to make some profit!
+                fee_coefficient = 1 - (GDAX_FEE + BUY_SELL_MARGIN)
+                print 'fee_coefficient: ' , fee_coefficient
+               # fee_coefficient = 1 - amount_of_coin_bought * (GDAX_FEE + BUY_SELL_MARGIN)
+                print 'current_price_ratio_for_selected_coins*fee_coefficient: ', current_price_ratio_for_selected_coins*fee_coefficient
+                print 'initial_price_ratio_for_selected_coins:   ', initial_price_ratio_for_selected_coins
 
-                # 2.d - need to round down 0.01$ so we can buy, gdax can not buy for example 3.123124124125$
-                amount_in_usd_to_buy = float(account_available_amounts_at_buy_time['usd'])
-                amount_in_usd_to_buy_round_down_two_digits = round(amount_in_usd_to_buy - 0.01, 2)
-                print 'BUY {} for {} USD'.format(coin_to_buy, amount_in_usd_to_buy_round_down_two_digits)
+                # 2- if this formula is true for coin1/coin2 need to sell coin1, and buy coin2
+                if initial_price_ratio_for_selected_coins < current_price_ratio_for_selected_coins*fee_coefficient:
+                    # 2.a - round down 0.01 of coin to be able to sell sometimes gdax has error , mnostly with doller!)
+                    # TODO: llook at this!
+                    result_file.write('initial_price_ratio_for_selected_coins: {}\n'.format(initial_price_ratio_for_selected_coins))
+                    result_file.write('current_price_ratio_for_selected_coins: {}\n'.format(current_price_ratio_for_selected_coins))
+                    result_file.write('current_price_ratio_for_selected_coins*fee_coefficient: {}\n'.format(current_price_ratio_for_selected_coins*fee_coefficient))
 
-                buy_result = gdax_trader.buy_market_value(coin_type=coin_to_buy,
-                                             funds_in_usd=amount_in_usd_to_buy_round_down_two_digits)
+                    amount_coin_to_sell = float(account_available_amounts_at_buy_time[coin_to_sell])
+                    amount_coin_to_sell_rounded_down = round(amount_coin_to_sell - 0.00000001, 8)
+                    print 'SEL {} in amount of {}'.format(coin_to_sell, amount_coin_to_sell_rounded_down)
 
-                print 'Result of Buy: {} '.format(buy_result)
+                    # 2.a - Sell the product (coin1) with market value
+                    sell_result = gdax_trader.sell_market_value(
+                        size_to_sell_coin_size=amount_coin_to_sell_rounded_down,
+                        coin_type=coin_to_sell
+                    )
+                    print 'Result of Sell: {} '.format(sell_result)
 
-                #TODO: put in a method?
-                # 2.e - Update Account amounts after buying
-                account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
+                    # 2.b - Buy coin2 in market value
+                    # new coin to buy: selected_pair-'previous coin'
+                    selected_coin_to_buy = coin_to_coin_pair_name.replace(selected_coin_to_buy + '/', '')
+                    print 'New selected coin to buy: {}'.format(selected_coin_to_buy)
 
-                # 2.f - update prices when bought, to be used for future buys
-                price_ratio_at_buy_time['litecoin/bitcoincash'] = current_price_ratios['litecoin/bitcoincash']
-                price_ratio_at_buy_time['litecoin/etherium'] = current_price_ratios['litecoin/etherium']
-                price_ratio_at_buy_time['litecoin/bitcoin'] = current_price_ratios['litecoin/bitcoin']
+                    # 2.c update account avaialble amount sto to how much USD we have
+                    account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
 
-                price_ratio_at_buy_time['etherium/litecoin'] = current_price_ratios['etherium/litecoin']
-                price_ratio_at_buy_time['etherium/bitcoincash'] = current_price_ratios['etherium/bitcoincash']
-                price_ratio_at_buy_time['etherium/bitcoin'] = current_price_ratios['etherium/bitcoin']
+                    # 2.d - need to round down 0.01$ so we can buy, gdax can not buy for example 3.123124124125$
+                    amount_in_usd_to_buy = float(account_available_amounts_at_buy_time['usd'])
+                    amount_in_usd_to_buy_round_down_two_digits = round(amount_in_usd_to_buy - 0.01, 2)
+                    print 'BUY {} for {} USD'.format(coin_to_buy, amount_in_usd_to_buy_round_down_two_digits)
 
-                price_ratio_at_buy_time['bitcoincash/litecoin'] = current_price_ratios['bitcoincash/litecoin']
-                price_ratio_at_buy_time['bitcoincash/etherium'] = current_price_ratios['bitcoincash/etherium']
-                price_ratio_at_buy_time['bitcoincash/bitcoin'] = current_price_ratios['bitcoincash/bitcoin']
+                    buy_result = gdax_trader.buy_market_value(coin_type=coin_to_buy,
+                                                 funds_in_usd=amount_in_usd_to_buy_round_down_two_digits)
 
-                price_ratio_at_buy_time['bitcoin/litecoin'] = current_price_ratios['bitcoin/litecoin']
-                price_ratio_at_buy_time['bitcoin/etherium'] = current_price_ratios['bitcoin/etherium']
-                price_ratio_at_buy_time['bitcoin/bitcoincash'] = current_price_ratios['bitcoin/bitcoincash']
+                    print 'Result of Buy: {} '.format(buy_result)
 
-                print 'Prices at buy/Sell time {}'.format(datetime.datetime.now())
-                print 'litecoin/bitcoincash  : ', price_ratio_at_buy_time['litecoin/bitcoincash']
-                print 'litecoin/etherium     : ', price_ratio_at_buy_time['litecoin/etherium']
-                print 'litecoin/bitcoin      : ', price_ratio_at_buy_time['litecoin/bitcoin']
-                print 'etherium/litecoin     : ', price_ratio_at_buy_time['etherium/litecoin']
-                print 'etherium/bitcoincash  : ', price_ratio_at_buy_time['etherium/bitcoincash']
-                print 'etherium/bitcoin      : ', price_ratio_at_buy_time['etherium/bitcoin']
-                print 'bitcoincash/litecoin  : ', price_ratio_at_buy_time['bitcoincash/litecoin']
-                print 'bitcoincash/etherium  : ',price_ratio_at_buy_time['bitcoincash/etherium']
-                print 'bitcoincash/bitcoin   : ',price_ratio_at_buy_time['bitcoincash/bitcoin']
-                print 'bitcoin/litecoin      : ',price_ratio_at_buy_time['bitcoin/litecoin']
-                print 'bitcoin/etherium      : ',price_ratio_at_buy_time['bitcoin/etherium']
-                print 'bitcoin/bitcoincash   : ',price_ratio_at_buy_time['bitcoin/bitcoincash']
+                    #TODO: put in a method?
+                    # 2.e - Update Account amounts after buying
+                    account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
 
-                amount_of_coin_bought = gdax_trader.get_account_all_products_available_amounts()[coin_to_buy]
-                print 'Amount bought of {} is {}: '.format(coin_to_buy, amount_of_coin_bought)
-                no_of_sell_or_buys += 1
-                print('Number of Sell/buys: ', no_of_sell_or_buys)
-                print '----------------'
+                    # 2.f - update prices when bought, to be used for future buys
+                    price_ratio_at_buy_time['litecoin/bitcoincash'] = current_price_ratios['litecoin/bitcoincash']
+                    price_ratio_at_buy_time['litecoin/etherium'] = current_price_ratios['litecoin/etherium']
+                    price_ratio_at_buy_time['litecoin/bitcoin'] = current_price_ratios['litecoin/bitcoin']
 
-                # 2.g sleep for transaction
-                time.sleep(1)
+                    price_ratio_at_buy_time['etherium/litecoin'] = current_price_ratios['etherium/litecoin']
+                    price_ratio_at_buy_time['etherium/bitcoincash'] = current_price_ratios['etherium/bitcoincash']
+                    price_ratio_at_buy_time['etherium/bitcoin'] = current_price_ratios['etherium/bitcoin']
 
-                # 2.f break the loop to go to newcoin/othercoins ratio
-                break
-            else:
-                print 'no sel!!'
+                    price_ratio_at_buy_time['bitcoincash/litecoin'] = current_price_ratios['bitcoincash/litecoin']
+                    price_ratio_at_buy_time['bitcoincash/etherium'] = current_price_ratios['bitcoincash/etherium']
+                    price_ratio_at_buy_time['bitcoincash/bitcoin'] = current_price_ratios['bitcoincash/bitcoin']
+
+                    price_ratio_at_buy_time['bitcoin/litecoin'] = current_price_ratios['bitcoin/litecoin']
+                    price_ratio_at_buy_time['bitcoin/etherium'] = current_price_ratios['bitcoin/etherium']
+                    price_ratio_at_buy_time['bitcoin/bitcoincash'] = current_price_ratios['bitcoin/bitcoincash']
+
+                    print 'Prices at buy/Sell time {}'.format(datetime.datetime.now())
+                    print 'Price ratio at buy time:  {}'.format(price_ratio_at_buy_time)
+                    result_file.write('Prices at buy/Sell time {}\n'.format(datetime.datetime.now()))
+                    result_file.write('Price ratio at buy time:  {}\n'.format(price_ratio_at_buy_time))
+                    result_file.write('account_available_amounts_at_buy_time: {}\n'.format(account_available_amounts_at_buy_time))
+                    result_file.write('Prices at buy time: {}\n'.format(current_individual_prices))
+
+                    print 'Prices price_ratio_at_buy_time at buy time: {}'.format(price_ratio_at_buy_time)
+
+                    amount_of_coin_bought = gdax_trader.get_account_all_products_available_amounts()[coin_to_buy]
+                    print 'Amount bought of {} is {}: '.format(coin_to_buy, amount_of_coin_bought)
+                    no_of_sell_or_buys += 1
+                    print('Number of Sell/buys: ', no_of_sell_or_buys)
+                    print '----------------'
+
+                    # 2.g sleep for transaction
+                    time.sleep(1)
+                    result_file.write('no_of_sell_or_buys: {}\n'.format(no_of_sell_or_buys))
+                    result_file.write('------------------\n')
+
+                    # 2.f break the loop to go to newcoin/othercoins ratio
+                    break
+                else:
+                    print 'no sel!!'
+                    print '-----'
 
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
 import gdax
-
+import json, ast
+from socket import error as SocketError
+import errno
+import time
 
 class GdaxHelper():
     COIN_TO_USD_PRODUCT_ID = {
@@ -35,7 +38,29 @@ class GdaxHelper():
         coin_price_pair = {}
         # TODO: look at performace for iterator
         for coin_name, coin_product_id in self.COIN_TO_USD_PRODUCT_ID.iteritems():
-            coin_price_pair[coin_name] = self.public_client.get_product_ticker(product_id=coin_product_id)['price']
+            # TODO: better to handle with try and catch. The error is 'Connection reset by peer'
+            time.sleep(1)
+            # We get connection reset by peer time to time,need to retry the connection
+            try:
+                product_ticker = self.public_client.get_product_ticker(product_id=coin_product_id)
+            except:
+                time.sleep(1)
+            #    if e.errno != errno.ECONNRESET:
+            #        raise RuntimeError('Error hadnling request: {}'.format(e)) # Not error we are looking for
+                # retry connection reset
+                product_ticker = self.public_client.get_product_ticker(product_id=coin_product_id)
+
+            # remove 'u' char from dictionary key-value pairs
+            product_ticker = ast.literal_eval(json.dumps(product_ticker))
+            print 'product_ticker: ' , product_ticker
+            # we may exceed limit rate of calls in a sec, so need to call it again!
+            if 'price' not in product_ticker:
+                print 'WARNING: {}'.format(product_ticker)
+                product_ticker = self.public_client.get_product_ticker(product_id=coin_product_id)
+                product_ticker = ast.literal_eval(json.dumps(product_ticker))
+            coin_price_pair[coin_name] = product_ticker['price']
+      #      print('coin_price_pair[coin_name]: ' , coin_price_pair[coin_name])
+          #  coin_price_pair[coin_name] = self.public_client.get_product_ticker(product_id=coin_product_id)[u'price']
         return coin_price_pair
 
     def get_current_coin_to_coin_price_ratio_for_all_coins_and_individual_prices(self):
