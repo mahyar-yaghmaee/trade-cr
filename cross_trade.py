@@ -69,6 +69,54 @@ class GdaxTrader():
 
         return account_available_amounts
 
+    def get_price_ratios_at_buy_time(self,
+                               litecoin_price_at_buy_time, bitcoin_cash_price_at_buy_time,
+                               etherium_price_at_buy_time, bitcoin_price_at_buy_time):
+        """
+        get price ratios at buy time, based on initial values
+        :return: dictionary consisting the ratios of al coin-to-coins
+        """
+        price_ratio_at_buy_time = {}
+        price_ratio_at_buy_time['litecoin/bitcoincash'] = litecoin_price_at_buy_time / bitcoin_cash_price_at_buy_time
+        price_ratio_at_buy_time['litecoin/etherium'] = litecoin_price_at_buy_time / etherium_price_at_buy_time
+        price_ratio_at_buy_time['litecoin/bitcoin'] = litecoin_price_at_buy_time / bitcoin_price_at_buy_time
+
+        price_ratio_at_buy_time['etherium/litecoin'] = etherium_price_at_buy_time / litecoin_price_at_buy_time
+        price_ratio_at_buy_time['etherium/bitcoincash'] = etherium_price_at_buy_time / bitcoin_cash_price_at_buy_time
+        price_ratio_at_buy_time['etherium/bitcoin'] = etherium_price_at_buy_time / bitcoin_price_at_buy_time
+
+        price_ratio_at_buy_time['bitcoincash/litecoin'] = bitcoin_cash_price_at_buy_time / litecoin_price_at_buy_time
+        price_ratio_at_buy_time['bitcoincash/etherium'] = bitcoin_cash_price_at_buy_time / etherium_price_at_buy_time
+        price_ratio_at_buy_time['bitcoincash/bitcoin'] = bitcoin_cash_price_at_buy_time / bitcoin_price_at_buy_time
+
+        price_ratio_at_buy_time['bitcoin/litecoin'] = bitcoin_price_at_buy_time / litecoin_price_at_buy_time
+        price_ratio_at_buy_time['bitcoin/etherium'] = bitcoin_price_at_buy_time / etherium_price_at_buy_time
+        price_ratio_at_buy_time['bitcoin/bitcoincash'] = bitcoin_price_at_buy_time / bitcoin_cash_price_at_buy_time
+        return price_ratio_at_buy_time
+
+    def update_price_ratios_at_buy_time_based_on_current_ratios(self, price_ratio_at_buy_time, current_price_ratios):
+        """
+        update the dictionary for coin-to-coin prices, based on currecnt prices (at but time)
+        :return: dictionary consisting updated values for coin-to-coin ratios
+        """
+        price_ratio_at_buy_time['litecoin/bitcoincash'] = current_price_ratios['litecoin/bitcoincash']
+        price_ratio_at_buy_time['litecoin/etherium'] = current_price_ratios['litecoin/etherium']
+        price_ratio_at_buy_time['litecoin/bitcoin'] = current_price_ratios['litecoin/bitcoin']
+
+        price_ratio_at_buy_time['etherium/litecoin'] = current_price_ratios['etherium/litecoin']
+        price_ratio_at_buy_time['etherium/bitcoincash'] = current_price_ratios['etherium/bitcoincash']
+        price_ratio_at_buy_time['etherium/bitcoin'] = current_price_ratios['etherium/bitcoin']
+
+        price_ratio_at_buy_time['bitcoincash/litecoin'] = current_price_ratios['bitcoincash/litecoin']
+        price_ratio_at_buy_time['bitcoincash/etherium'] = current_price_ratios['bitcoincash/etherium']
+        price_ratio_at_buy_time['bitcoincash/bitcoin'] = current_price_ratios['bitcoincash/bitcoin']
+
+        price_ratio_at_buy_time['bitcoin/litecoin'] = current_price_ratios['bitcoin/litecoin']
+        price_ratio_at_buy_time['bitcoin/etherium'] = current_price_ratios['bitcoin/etherium']
+        price_ratio_at_buy_time['bitcoin/bitcoincash'] = current_price_ratios['bitcoin/bitcoincash']
+
+        return price_ratio_at_buy_time
+
 
 def main(argv):
 
@@ -90,23 +138,12 @@ def main(argv):
     # TODO: MAKE SURE TO GEt THIS AS ARGUMENT!!!!!!!! <<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>
     selected_coin_to_buy = 'bitcoin'
 
-    price_ratio_at_buy_time = {}
-    # Since we have litecoin in bank,I should buy/sell based on litecoin first
-    price_ratio_at_buy_time['litecoin/bitcoincash'] = litecoin_price_at_buy_time/bitcoin_cash_price_at_buy_time
-    price_ratio_at_buy_time['litecoin/etherium'] = litecoin_price_at_buy_time/etherium_price_at_buy_time
-    price_ratio_at_buy_time['litecoin/bitcoin'] = litecoin_price_at_buy_time/bitcoin_price_at_buy_time
+    price_ratio_at_buy_time = gdax_trader.get_price_ratios_at_buy_time(
+        litecoin_price_at_buy_time=litecoin_price_at_buy_time,
+        bitcoin_cash_price_at_buy_time=bitcoin_cash_price_at_buy_time,
+        etherium_price_at_buy_time=etherium_price_at_buy_time,
+        bitcoin_price_at_buy_time=bitcoin_price_at_buy_time)
 
-    price_ratio_at_buy_time['etherium/litecoin'] = etherium_price_at_buy_time/litecoin_price_at_buy_time
-    price_ratio_at_buy_time['etherium/bitcoincash'] = etherium_price_at_buy_time/bitcoin_cash_price_at_buy_time
-    price_ratio_at_buy_time['etherium/bitcoin'] = etherium_price_at_buy_time/bitcoin_price_at_buy_time
-
-    price_ratio_at_buy_time['bitcoincash/litecoin'] = bitcoin_cash_price_at_buy_time/litecoin_price_at_buy_time
-    price_ratio_at_buy_time['bitcoincash/etherium'] = bitcoin_cash_price_at_buy_time/etherium_price_at_buy_time
-    price_ratio_at_buy_time['bitcoincash/bitcoin'] = bitcoin_cash_price_at_buy_time/bitcoin_price_at_buy_time
-
-    price_ratio_at_buy_time['bitcoin/litecoin'] = bitcoin_price_at_buy_time/litecoin_price_at_buy_time
-    price_ratio_at_buy_time['bitcoin/etherium'] = bitcoin_price_at_buy_time/etherium_price_at_buy_time
-    price_ratio_at_buy_time['bitcoin/bitcoincash'] = bitcoin_price_at_buy_time/bitcoin_cash_price_at_buy_time
     account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
 
     result_file_name = 'buy_result.txt'
@@ -196,21 +233,8 @@ def main(argv):
                     account_available_amounts_at_buy_time = gdax_trader.get_account_all_products_available_amounts()
 
                     # 2.f - update prices when bought, to be used for future buys
-                    price_ratio_at_buy_time['litecoin/bitcoincash'] = current_price_ratios['litecoin/bitcoincash']
-                    price_ratio_at_buy_time['litecoin/etherium'] = current_price_ratios['litecoin/etherium']
-                    price_ratio_at_buy_time['litecoin/bitcoin'] = current_price_ratios['litecoin/bitcoin']
-
-                    price_ratio_at_buy_time['etherium/litecoin'] = current_price_ratios['etherium/litecoin']
-                    price_ratio_at_buy_time['etherium/bitcoincash'] = current_price_ratios['etherium/bitcoincash']
-                    price_ratio_at_buy_time['etherium/bitcoin'] = current_price_ratios['etherium/bitcoin']
-
-                    price_ratio_at_buy_time['bitcoincash/litecoin'] = current_price_ratios['bitcoincash/litecoin']
-                    price_ratio_at_buy_time['bitcoincash/etherium'] = current_price_ratios['bitcoincash/etherium']
-                    price_ratio_at_buy_time['bitcoincash/bitcoin'] = current_price_ratios['bitcoincash/bitcoin']
-
-                    price_ratio_at_buy_time['bitcoin/litecoin'] = current_price_ratios['bitcoin/litecoin']
-                    price_ratio_at_buy_time['bitcoin/etherium'] = current_price_ratios['bitcoin/etherium']
-                    price_ratio_at_buy_time['bitcoin/bitcoincash'] = current_price_ratios['bitcoin/bitcoincash']
+                    price_ratio_at_buy_time = gdax_trader.update_price_ratios_at_buy_time_based_on_current_ratios(
+                        price_ratio_at_buy_time, current_price_ratios)
 
                     print 'Prices at buy/Sell time {}'.format(datetime.datetime.now())
                     print 'Price ratio at buy time:  {}'.format(price_ratio_at_buy_time)
